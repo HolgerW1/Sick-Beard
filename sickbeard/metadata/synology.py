@@ -39,8 +39,8 @@ class SynologyMetadata(generic.GenericMetadata):
     The following file structure is used:
     
     show_root/Season 01/show - 1x01 - episode.avi  (* example of existing ep of course)
-    show_root/Season 01/@eaDir/show - 1x01 - episode.mkv/SYNOVIDEO:VIDEO_SCREENSHOT.jpg  (episode thumb)
-    show_root/Season 01/@eaDir/show - 1x01 - episode.mkv/SYNOVIDEO:TV_EPISODE  (episode metadata)
+    show_root/Season 01/@eaDir/show - 1x01 - episode.mkv/SYNOVIDEO_VIDEO_SCREENSHOT.jpg  (episode thumb)
+    show_root/Season 01/@eaDir/show - 1x01 - episode.mkv/SYNOVIDEO_TV_EPISODE  (episode metadata)
     """
     
     def __init__(self,
@@ -64,10 +64,10 @@ class SynologyMetadata(generic.GenericMetadata):
         self.name = 'Synology'
 
         self.eg_show_metadata = "<i>not supported</i>"
-        self.eg_episode_metadata = "@eaDir\\<i>filename</i>\\SYNOVIDEO:TV_EPISODE"
+        self.eg_episode_metadata = "@eaDir\\<i>filename</i>\\SYNOVIDEO_TV_EPISODE"
         self.eg_fanart = "<i>not supported</i>"
         self.eg_poster = "folder.jpg"
-        self.eg_episode_thumbnails = "@eaDir\\<i>filename</i>\\SYNOVIDEO:VIDEO_SCREENSHOT.jpg"
+        self.eg_episode_thumbnails = "@eaDir\\<i>filename</i>\\SYNOVIDEO_VIDEO_SCREENSHOT.jpg"
         self.eg_season_thumbnails = "<i>not supported</i>"
     
     # all of the following are not supported, so do nothing
@@ -89,7 +89,7 @@ class SynologyMetadata(generic.GenericMetadata):
         ep_obj: a TVEpisode instance for which to create the thumbnail
         """
         if ek.ek(os.path.isfile, ep_obj.location):
-            tbn_filename = 'SYNOVIDEO:VIDEO_SCREENSHOT.jpg'
+            tbn_filename = 'SYNOVIDEO_VIDEO_SCREENSHOT.jpg'
             tbn_dir_name = ek.ek(os.path.join, ek.ek(os.path.dirname, ep_obj.location), '@eaDir', ek.ek(os.path.basename, ep_obj.location))
             tbn_filepath = ek.ek(os.path.join, tbn_dir_name, tbn_filename)            
         else:
@@ -101,12 +101,12 @@ class SynologyMetadata(generic.GenericMetadata):
     def get_episode_file_path(self, ep_obj):
         """
         Returns the full path for the Synology episode metadata
-        show dir/@eaDir/episode/SYNOVIDEO:TV_EPISODE
+        show dir/@eaDir/episode/SYNOVIDEO_TV_EPISODE
         
         ep_obj: a TVEpisode object to get the path for
         """
         if ek.ek(os.path.isfile, ep_obj.location):
-            metadata_file_name = 'SYNOVIDEO:TV_EPISODE'
+            metadata_file_name = 'SYNOVIDEO_TV_EPISODE'
             metadata_dir_name = ek.ek(os.path.join, ek.ek(os.path.dirname, ep_obj.location), '@eaDir', ek.ek(os.path.basename, ep_obj.location))
             metadata_file_path = ek.ek(os.path.join, metadata_dir_name, metadata_file_name)
         else:

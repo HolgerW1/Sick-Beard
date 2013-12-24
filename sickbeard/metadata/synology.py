@@ -38,7 +38,7 @@ class SynologyMetadata(generic.GenericMetadata):
     
     The following file structure is used:
     
-    show_root/Season 01/show - 1x01 - episode.avi  (* example of existing ep of course)
+    show_root/Season 01/show - 1x01 - episode.mkv  (* example of existing ep of course)
     show_root/Season 01/@eaDir/show - 1x01 - episode.mkv/SYNOVIDEO_VIDEO_SCREENSHOT.jpg  (episode thumb)
     show_root/Season 01/@eaDir/show - 1x01 - episode.mkv/SYNOVIDEO_TV_EPISODE  (episode metadata)
     """
@@ -110,7 +110,7 @@ class SynologyMetadata(generic.GenericMetadata):
             metadata_dir_name = ek.ek(os.path.join, ek.ek(os.path.dirname, ep_obj.location), '@eaDir', ek.ek(os.path.basename, ep_obj.location))
             metadata_file_path = ek.ek(os.path.join, metadata_dir_name, metadata_file_name)
         else:
-            logger.log(u"Episode location doesn't exist: "+str(ep_obj.location), logger.DEBUG)
+            logger.log(u"Episode location doesn't exist: " + str(ep_obj.location), logger.DEBUG)
             return ''
         
         return metadata_file_path
@@ -142,7 +142,7 @@ class SynologyMetadata(generic.GenericMetadata):
         except tvdb_exceptions.tvdb_shownotfound, e:
             raise exceptions.ShowNotFoundException(str(e))
         except tvdb_exceptions.tvdb_error, e:
-            logger.log("Unable to connect to TVDB while creating meta files - skipping - "+str(e), logger.ERROR)
+            logger.log("Unable to connect to TVDB while creating meta files - skipping - " + str(e), logger.ERROR)
             return False
         
         for curEpToWrite in eps_to_write:
@@ -214,16 +214,16 @@ class SynologyMetadata(generic.GenericMetadata):
         
         try:
             if not ek.ek(os.path.isdir, meta_file_dir):
-                logger.log("Metadata dir didn't exist, creating it at "+meta_file_dir, logger.DEBUG)
+                logger.log("Metadata dir didn't exist, creating it at " + meta_file_dir, logger.DEBUG)
                 ek.ek(os.makedirs, meta_file_dir)
                 helpers.chmodAsParent(meta_file_dir)
             
             if not ek.ek(os.path.isdir, nfo_file_dir):
-                logger.log("Metadata dir didn't exist, creating it at "+nfo_file_dir, logger.DEBUG)
+                logger.log("Metadata dir didn't exist, creating it at " + nfo_file_dir, logger.DEBUG)
                 ek.ek(os.makedirs, nfo_file_dir)
                 helpers.chmodAsParent(nfo_file_dir)
             
-            logger.log(u"Writing episode metadata file to "+nfo_file_path)
+            logger.log(u"Writing episode metadata file to " + nfo_file_path)
             
             nfo_file = ek.ek(open, nfo_file_path, 'w')
             
@@ -232,7 +232,7 @@ class SynologyMetadata(generic.GenericMetadata):
             nfo_file.close()
             helpers.chmodAsParent(nfo_file_path)
         except IOError, e:
-            logger.log(u"Unable to write file to "+nfo_file_path+" - are you sure the folder is writable? "+ex(e), logger.ERROR)
+            logger.log(u"Unable to write file to " + nfo_file_path + " - are you sure the folder is writable? " + ex(e), logger.ERROR)
             return False
         
         return True

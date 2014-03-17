@@ -46,29 +46,42 @@ class SynologyMetadata(generic.GenericMetadata):
     def __init__(self,
                  show_metadata=False,
                  episode_metadata=False,
-                 poster=False,
                  fanart=False,
+                 poster=False,
+                 banner=False,
                  episode_thumbnails=False,
-                 season_thumbnails=False):
+                 season_posters=False,
+                 season_banners=False,
+                 season_all_poster=False,
+                 season_all_banner=False):
 
         generic.GenericMetadata.__init__(self,
                                          show_metadata,
                                          episode_metadata,
-                                         poster,
                                          fanart,
+                                         poster,
+                                         banner,
                                          episode_thumbnails,
-                                         season_thumbnails)
+                                         season_posters,
+                                         season_banners,
+                                         season_all_poster,
+                                         season_all_banner)
         
         self._show_file_name = 'series.xml'
         
         self.name = 'Synology'
 
+        # web-ui metadata template
         self.eg_show_metadata = "<i>not supported</i>"
         self.eg_episode_metadata = "@eaDir\\<i>filename</i>\\SYNOVIDEO_TV_EPISODE"
         self.eg_fanart = "<i>not supported</i>"
         self.eg_poster = "folder.jpg"
+        self.eg_banner = "<i>not supported</i>"
         self.eg_episode_thumbnails = "@eaDir\\<i>filename</i>\\SYNOVIDEO_VIDEO_SCREENSHOT.jpg"
-        self.eg_season_thumbnails = "<i>not supported</i>"
+        self.eg_season_posters = "<i>not supported</i>"
+        self.eg_season_banners = "<i>not supported</i>"
+        self.eg_season_all_poster = "<i>not supported</i>"
+        self.eg_season_all_banner = "<i>not supported</i>"
     
     # all of the following are not supported, so do nothing
     def create_show_metadata(self, show_obj):

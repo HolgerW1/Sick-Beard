@@ -67,10 +67,10 @@ class SynologyMetadata(generic.GenericMetadata):
                                          season_all_poster,
                                          season_all_banner)
         
+        self.name = 'Synology'
+        
         self._show_file_name = 'series.xml'
         
-        self.name = 'Synology'
-
         # web-ui metadata template
         self.eg_show_metadata = "<i>not supported</i>"
         self.eg_episode_metadata = "@eaDir\\<i>filename</i>\\SYNOVIDEO_TV_EPISODE"
@@ -83,16 +83,6 @@ class SynologyMetadata(generic.GenericMetadata):
         self.eg_season_all_poster = "<i>not supported</i>"
         self.eg_season_all_banner = "<i>not supported</i>"
     
-    # all of the following are not supported, so do nothing
-    def create_show_metadata(self, show_obj):
-        pass
-    
-    def create_fanart(self, show_obj):
-        pass
-
-    def get_season_thumb_path(self, show_obj, season):
-        pass
-
     # Override and implement features for Synology VideoStation
     def get_episode_thumb_path(self, ep_obj):
         """
@@ -250,8 +240,34 @@ class SynologyMetadata(generic.GenericMetadata):
         
         return True
 
-    def retrieveShowMetadata(self, dir):
+    # Override with empty methods for unsupported features
+    def retrieveShowMetadata(self, folder):
+        # no show metadata generated, we abort this lookup function
         return (None, None)
+
+    def create_show_metadata(self, show_obj):
+        pass
+
+    def get_show_file_path(self, show_obj):
+        pass
+
+    def get_season_poster_path(self, show_obj, season):
+        pass
+
+    def create_fanart(self, show_obj):
+        pass
+
+    def create_banner(self, show_obj):
+        pass
+
+    def create_season_banners(self, show_obj):
+        pass
+
+    def create_season_all_poster(self, show_obj):
+        pass
+
+    def create_season_all_banner(self, show_obj):
+        pass
 
 # present a standard "interface"
 metadata_class = SynologyMetadata

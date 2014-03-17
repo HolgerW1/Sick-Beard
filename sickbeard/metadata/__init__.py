@@ -22,6 +22,7 @@ import sys
 
 import mediabrowser
 import ps3
+import synology
 import tivo
 import wdtv
 import xbmc

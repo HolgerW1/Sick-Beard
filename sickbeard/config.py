@@ -595,6 +595,7 @@ class ConfigMigrator():
         metadata_ps3 = check_setting_str(self.config_obj, 'General', 'metadata_ps3', '0|0|0|0|0|0')
         metadata_wdtv = check_setting_str(self.config_obj, 'General', 'metadata_wdtv', '0|0|0|0|0|0')
         metadata_tivo = check_setting_str(self.config_obj, 'General', 'metadata_tivo', '0|0|0|0|0|0')
+        metadata_synology = check_setting_str(self.config_obj, 'General', 'metadata_synology', '0|0|0|0|0|0')
 
         use_banner = bool(check_setting_int(self.config_obj, 'General', 'use_banner', 0))
 

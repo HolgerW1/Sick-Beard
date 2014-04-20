@@ -655,8 +655,8 @@ def initialize(consoleLogging=True):
                                    (METADATA_PS3, metadata.ps3),
                                    (METADATA_WDTV, metadata.wdtv),
                                    (METADATA_TIVO, metadata.tivo),
-                                   (METADATA_MEDE8ER, metadata.mede8er)
-                                   (METADATA_SYNOLOGY, metadata.synology),
+                                   (METADATA_MEDE8ER, metadata.mede8er),
+                                   (METADATA_SYNOLOGY, metadata.synology)
                                    ]:
 
             (cur_metadata_config, cur_metadata_class) = cur_metadata_tuple

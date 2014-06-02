@@ -198,7 +198,7 @@ $(document).ready(function () {
             if (data == null) {
                 $("#nmjv2_database").removeAttr("readonly");
             }
-            var JSONData = $.parseJSON(data);
+            var JSONData = $.parseJSON(data || "null");
             $("#testNMJv2-result").html(JSONData.message);
             $("#nmjv2_database").val(JSONData.database);
 
@@ -257,4 +257,15 @@ $(document).ready(function () {
                 $("#testNMA").attr("disabled", false);
             });
     });
+
+    $("#testSynoNotify").click(function () {
+        $(this).attr("disabled", true);
+        $("#testSynoNotify-result").html(loading);
+        $.get(sbRoot + "/home/testSynoNotify")
+            .done(function (data) {
+                $("#testSynoNotify-result").html(data);
+                $("#testSynoNotify").attr("disabled", false);
+            });
+    });
+
 });

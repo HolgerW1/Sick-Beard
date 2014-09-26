@@ -44,7 +44,7 @@
                             </label>
                             <label class="nocheck clearfix">
                                 <span class="component-title">&nbsp;</span>
-                                <span class="component-desc"><b>NOTE:</b> Used with option Scan an Process or Manual Post-Processing.</span>
+                                <span class="component-desc"><b>NOTE:</b> Used with option Scan and Process or Manual Post-Processing.</span>
                             </label>
                         </div>
 
@@ -65,6 +65,17 @@
                             <label class="nocheck clearfix" for="move_associated_files">
                                 <span class="component-title">&nbsp;</span>
                                 <span class="component-desc"><b>NOTE:</b> <i>.nfo</i> will be renamed to <i>.nfo-orig</i> when moved.</span>
+                            </label>
+                        </div>
+
+                        <div class="field-pair">
+                            <label class="nocheck clearfix" for="filter_associated_files">
+                                <span class="component-title">Filter Associated Files</span>
+                                <input type="text" name="filter_associated_files" id="filter_associated_files" value="$sickbeard.FILTER_ASSOCIATED_FILES" size="35" />
+                            </label>
+                            <label class="nocheck clearfix">
+                                <span class="component-title">&nbsp;</span>
+                                <span class="component-desc">Filter associated files by specific non-media file extensions (separated with coma). (eg. .idx, .sub, .en.srt)</span>
                             </label>
                         </div>
 
@@ -464,7 +475,7 @@
                             <span>Toggle the metadata options that you wish to be created. <b>Multiple targets may be used.</b></span>
                         </div>
 
-#for ($cur_name, $cur_generator) in $m_dict.items(): 
+#for ($cur_name, $cur_generator) in $m_dict.items():
 #set $cur_metadata_inst = $sickbeard.metadata_provider_dict[$cur_generator.name]
 #set $cur_id = $cur_generator.get_id()
 <div class="metadataDiv clearfix" id="$cur_id">

@@ -20,14 +20,13 @@ import datetime
 import os.path
 import re
 
-import regexes
-
 import sickbeard
 
-from sickbeard import logger
 from sickbeard import encodingKludge as ek
 from sickbeard import helpers
-
+from sickbeard import logger
+from sickbeard.exceptions import ex
+from sickbeard.name_parser import regexes
 
 
 class NameParser(object):
@@ -97,11 +96,15 @@ class NameParser(object):
                 result.season_number = tmp_season
 
             if 'ep_num' in named_groups:
-                ep_num = self._convert_number(match.group('ep_num'))
-                if 'extra_ep_num' in named_groups and match.group('extra_ep_num'):
-                    result.episode_numbers = range(ep_num, self._convert_number(match.group('extra_ep_num')) + 1)
-                else:
-                    result.episode_numbers = [ep_num]
+                try:
+                    ep_num = self._convert_number(match.group('ep_num'))
+                    if 'extra_ep_num' in named_groups and match.group('extra_ep_num'):
+                        result.episode_numbers = range(ep_num, self._convert_number(match.group('extra_ep_num')) + 1)
+                    else:
+                        result.episode_numbers = [ep_num]
+
+                except ValueError, e:
+                    raise InvalidNameException(ex(e))
 
             if 'air_year' in named_groups and 'air_month' in named_groups and 'air_day' in named_groups:
                 year = int(match.group('air_year'))
@@ -117,7 +120,7 @@ class NameParser(object):
                 try:
                     result.air_date = datetime.date(year, month, day)
                 except ValueError, e:
-                    raise InvalidNameException(e.message)
+                    raise InvalidNameException(ex(e))
 
             result.is_proper = False
 
@@ -157,7 +160,7 @@ class NameParser(object):
         b = getattr(second, attr)
 
         # if a is good use it
-        if a != None or (type(a) == list and len(a)):
+        if a is not None or (type(a) == list and len(a)):
             return a
         # if not use b (if b isn't set it'll just be default)
         else:
@@ -169,38 +172,51 @@ class NameParser(object):
                 obj = unicode(obj, encoding)
         return obj
 
-    def _convert_number(self, org_number):
+    def _convert_number(self, number):
         """
-        Convert org_number into an integer
-        org_number: integer or representation of a number: string or unicode
-        Try force converting to int first, on error try converting from Roman numerals
-        returns integer or 0
+        Convert number into an integer. Try force converting into integer first,
+        on error try converting from Roman numerals.
+
+        Args:
+            number: int or representation of a number: string or unicode
+
+        Returns:
+            integer: int number
+
+        Raises:
+            ValueError
         """
 
         try:
             # try forcing to int
-            if org_number:
-                number = int(org_number)
-            else:
-                number = 0
+            integer = int(number)
 
         except:
             # on error try converting from Roman numerals
-            roman_to_int_map = (('M', 1000), ('CM', 900), ('D', 500), ('CD', 400), ('C', 100),
-                                ('XC', 90), ('L', 50), ('XL', 40), ('X', 10),
-                                ('IX', 9), ('V', 5), ('IV', 4), ('I', 1)
-                               )
+            roman_numeral_map = (
+                                 ('M', 1000, 3),
+                                 ('CM', 900, 1), ('D', 500, 1), ('CD', 400, 1), ('C', 100, 3),
+                                 ('XC', 90, 1), ('L', 50, 1), ('XL', 40, 1), ('X', 10, 3),
+                                 ('IX', 9, 1), ('V', 5, 1), ('IV', 4, 1), ('I', 1, 3)
+                                )
 
-            roman_numeral = str(org_number).upper()
-            number = 0
+            roman_numeral = str(number).upper()
+            integer = 0
             index = 0
 
-            for numeral, integer in roman_to_int_map:
+            for numeral, value, max_count in roman_numeral_map:
+                count = 0
                 while roman_numeral[index:index + len(numeral)] == numeral:
-                    number += integer
+                    count += 1
+                    if count > max_count:
+                        raise ValueError('not a roman numeral')
+                    integer += value
                     index += len(numeral)
 
-        return number
+            if index < len(roman_numeral):
+                raise ValueError('not a roman numeral')
+
+        return integer
 
     def parse(self, name):
 
@@ -214,7 +230,7 @@ class NameParser(object):
         dir_name, file_name = ek.ek(os.path.split, name)
 
         if self.is_file_name:
-            base_file_name = helpers.remove_extension(file_name)
+            base_file_name = helpers.remove_non_release_groups(helpers.remove_extension(file_name))
         else:
             base_file_name = file_name
 
@@ -256,7 +272,7 @@ class NameParser(object):
                 final_result.which_regex += dir_name_result.which_regex
 
         # if there's no useful info in it then raise an exception
-        if final_result.season_number == None and not final_result.episode_numbers and final_result.air_date == None and not final_result.series_name:
+        if final_result.season_number is None and not final_result.episode_numbers and final_result.air_date is None and not final_result.series_name:
             raise InvalidNameException("Unable to parse " + name.encode(sickbeard.SYS_ENCODING, 'xmlcharrefreplace'))
 
         name_parser_cache.add(name, final_result)
@@ -311,11 +327,11 @@ class ParseResult(object):
         return True
 
     def __str__(self):
-        if self.series_name != None:
+        if self.series_name is not None:
             to_return = self.series_name + u' - '
         else:
             to_return = u''
-        if self.season_number != None:
+        if self.season_number is not None:
             to_return += 'S' + str(self.season_number)
         if self.episode_numbers and len(self.episode_numbers):
             for e in self.episode_numbers:
@@ -334,14 +350,14 @@ class ParseResult(object):
         return to_return.encode('utf-8')
 
     def _is_air_by_date(self):
-        if self.season_number == None and len(self.episode_numbers) == 0 and self.air_date:
+        if self.season_number is None and len(self.episode_numbers) == 0 and self.air_date:
             return True
         return False
     air_by_date = property(_is_air_by_date)
 
 
 class NameParserCache(object):
-    #TODO: check if the fifo list can beskiped and only use one dict
+    # TODO: check if the fifo list can be skipped and only use one dict
     _previous_parsed_list = []  # keep a fifo list of the cached items
     _previous_parsed = {}
     _cache_size = 100
@@ -355,7 +371,7 @@ class NameParserCache(object):
 
     def get(self, name):
         if name in self._previous_parsed:
-            logger.log("Using cached parse result for: " + name, logger.DEBUG)
+            logger.log(u"Using cached parse result for: " + name, logger.DEBUG)
             return self._previous_parsed[name]
         else:
             return None

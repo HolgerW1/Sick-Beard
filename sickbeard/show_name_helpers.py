@@ -29,8 +29,8 @@ import datetime
 
 from name_parser.parser import NameParser, InvalidNameException
 
-resultFilters = ["sub(pack|s|bed)", "nlsub(bed|s)?", "swesub(bed)?",
-                 "(dir|sample|sub|nfo)fix", "sample", "(dvd)?extras",
+resultFilters = ["sub(bed|ed|pack|s)", "(dk|fin|heb|kor|nl|nor|nordic|pl|swe)sub(bed|ed|s)?",
+                 "(dir|sample|sub|nfo|proof)fix(es)?", "sample", "(dvd)?extras",
                  "dub(bed)?"]
 
 
@@ -66,10 +66,12 @@ def filterBadReleases(name):
         return True
 
     # if any of the bad strings are in the name then say no
-    for x in resultFilters + sickbeard.IGNORE_WORDS.split(','):
-        if re.search('(^|[\W_])' + x + '($|[\W_])', check_string, re.I):
-            logger.log(u"Invalid scene release: " + name + " contains " + x + ", ignoring it", logger.DEBUG)
-            return False
+    for ignore_word in resultFilters + sickbeard.IGNORE_WORDS.split(','):
+        ignore_word = ignore_word.strip()
+        if ignore_word:
+            if re.search('(^|[\W_])' + ignore_word + '($|[\W_])', check_string, re.I):
+                logger.log(u"Invalid scene release: " + name + " contains " + ignore_word + ", ignoring it", logger.DEBUG)
+                return False
 
     return True
 

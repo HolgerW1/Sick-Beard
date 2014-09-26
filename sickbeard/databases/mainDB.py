@@ -26,7 +26,7 @@ from sickbeard import encodingKludge as ek
 from sickbeard.name_parser.parser import NameParser, InvalidNameException
 
 MIN_DB_VERSION = 9  # oldest db version we support migrating from
-MAX_DB_VERSION = 14
+MAX_DB_VERSION = 15
 
 
 class MainSanityCheck(db.DBSanityCheck):
@@ -87,8 +87,7 @@ def backupDatabase(version):
     logger.log(u"Backing up database before upgrade")
 
     if not helpers.backupVersionedFile(db.dbFilename(), version):
-        logger.log(u"Database backup failed, abort upgrading database")
-        sys.exit("Database backup failed, abort upgrading database")
+        logger.log_error_and_exit(u"Database backup failed, abort upgrading database")
     else:
         logger.log(u"Proceeding with upgrade")
 
@@ -98,7 +97,7 @@ def backupDatabase(version):
 # Add new migrations at the bottom of the list; subclass the previous migration.
 
 
-# schema is based off v14 - build 502
+# schema is based off v15 - build 504
 class InitialSchema (db.SchemaUpgrade):
     def test(self):
         return self.hasTable("tv_shows") and self.hasTable("db_version") and self.checkDBVersion() >= MIN_DB_VERSION and self.checkDBVersion() <= MAX_DB_VERSION
@@ -110,11 +109,11 @@ class InitialSchema (db.SchemaUpgrade):
                 "CREATE TABLE history (action NUMERIC, date NUMERIC, showid NUMERIC, season NUMERIC, episode NUMERIC, quality NUMERIC, resource TEXT, provider TEXT);",
                 "CREATE TABLE info (last_backlog NUMERIC, last_tvdb NUMERIC);",
                 "CREATE TABLE tv_episodes (episode_id INTEGER PRIMARY KEY, showid NUMERIC, tvdbid NUMERIC, name TEXT, season NUMERIC, episode NUMERIC, description TEXT, airdate NUMERIC, hasnfo NUMERIC, hastbn NUMERIC, status NUMERIC, location TEXT, file_size NUMERIC, release_name TEXT);",
-                "CREATE TABLE tv_shows (show_id INTEGER PRIMARY KEY, location TEXT, show_name TEXT, tvdb_id NUMERIC, network TEXT, genre TEXT, runtime NUMERIC, quality NUMERIC, airs TEXT, status TEXT, flatten_folders NUMERIC, paused NUMERIC, startyear NUMERIC, tvr_id NUMERIC, tvr_name TEXT, air_by_date NUMERIC, lang TEXT, last_update_tvdb NUMERIC);",
+                "CREATE TABLE tv_shows (show_id INTEGER PRIMARY KEY, location TEXT, show_name TEXT, tvdb_id NUMERIC, network TEXT, genre TEXT, runtime NUMERIC, quality NUMERIC, airs TEXT, status TEXT, flatten_folders NUMERIC, paused NUMERIC, startyear NUMERIC, tvr_id NUMERIC, tvr_name TEXT, air_by_date NUMERIC, lang TEXT, last_update_tvdb NUMERIC, rls_require_words TEXT, rls_ignore_words TEXT);",
                 "CREATE INDEX idx_tv_episodes_showid_airdate ON tv_episodes (showid,airdate);",
                 "CREATE INDEX idx_showid ON tv_episodes (showid);",
                 "CREATE UNIQUE INDEX idx_tvdb_id ON tv_shows (tvdb_id);",
-                "INSERT INTO db_version (db_version) VALUES (14);"
+                "INSERT INTO db_version (db_version) VALUES (15);"
             ]
 
             for query in queries:
@@ -124,12 +123,16 @@ class InitialSchema (db.SchemaUpgrade):
             cur_db_version = self.checkDBVersion()
 
             if cur_db_version < MIN_DB_VERSION:
-                sys.exit("Your database version (" + str(cur_db_version) + ") is too old to migrate from what this version of Sick Beard supports (" + str(MIN_DB_VERSION) + ").\n" + \
-                                 "Upgrade using a previous version (tag) build 496 to build 501 of Sick Beard first or remove database file to begin fresh.")
+                logger.log_error_and_exit(u"Your database version (" + str(cur_db_version) + ") is too old to migrate from what this version of Sick Beard supports (" + \
+                                          str(MIN_DB_VERSION) + ").\n" + \
+                                          "Upgrade using a previous version (tag) build 496 to build 501 of Sick Beard first or remove database file to begin fresh."
+                                          )
 
             if cur_db_version > MAX_DB_VERSION:
-                sys.exit("Your database version (" + str(cur_db_version) + ") has been incremented past what this version of Sick Beard supports (" + str(MAX_DB_VERSION) + ").\n" + \
-                                  "If you have used other forks of Sick Beard, your database may be unusable due to their modifications.")
+                logger.log_error_and_exit(u"Your database version (" + str(cur_db_version) + ") has been incremented past what this version of Sick Beard supports (" + \
+                                          str(MAX_DB_VERSION) + ").\n" + \
+                                          "If you have used other forks of Sick Beard, your database may be unusable due to their modifications."
+                                          )
 
 
 # included in build 496 (2012-06-28)
@@ -382,7 +385,7 @@ class Add1080pAndRawHDQualities(RenameSeasonFolders):
         self.connection.action("VACUUM")
 
 
-# included in build 502 (TBD)
+# included in build 502 (2013-11-24)
 class AddShowidTvdbidIndex(Add1080pAndRawHDQualities):
     """ Adding index on tvdb_id (tv_shows) and showid (tv_episodes) to speed up searches/queries """
 
@@ -396,13 +399,15 @@ class AddShowidTvdbidIndex(Add1080pAndRawHDQualities):
         MainSanityCheck(self.connection).fix_duplicate_shows()
 
         logger.log(u"Adding index on tvdb_id (tv_shows) and showid (tv_episodes) to speed up searches/queries.")
-        self.connection.action("CREATE INDEX idx_showid ON tv_episodes (showid);")
-        self.connection.action("CREATE UNIQUE INDEX idx_tvdb_id ON tv_shows (tvdb_id);")
+        if not self.hasTable("idx_showid"):
+            self.connection.action("CREATE INDEX idx_showid ON tv_episodes (showid);")
+        if not self.hasTable("idx_tvdb_id"):
+            self.connection.action("CREATE UNIQUE INDEX idx_tvdb_id ON tv_shows (tvdb_id);")
 
         self.incDBVersion()
 
 
-# included in build 502 (TBD)
+# included in build 502 (2013-11-24)
 class AddLastUpdateTVDB(AddShowidTvdbidIndex):
     """ Adding column last_update_tvdb to tv_shows for controlling nightly updates """
 
@@ -415,5 +420,26 @@ class AddLastUpdateTVDB(AddShowidTvdbidIndex):
         logger.log(u"Adding column last_update_tvdb to tvshows")
         if not self.hasColumn("tv_shows", "last_update_tvdb"):
             self.addColumn("tv_shows", "last_update_tvdb", default=1)
+
+        self.incDBVersion()
+
+
+# included in build 504 (2014-04-14)
+class AddRequireAndIgnoreWords(AddLastUpdateTVDB):
+    """ Adding column rls_require_words and rls_ignore_words to tv_shows """
+
+    def test(self):
+        return self.checkDBVersion() >= 15
+
+    def execute(self):
+        backupDatabase(15)
+
+        logger.log(u"Adding column rls_require_words to tvshows")
+        if not self.hasColumn("tv_shows", "rls_require_words"):
+            self.addColumn("tv_shows", "rls_require_words", "TEXT", "")
+
+        logger.log(u"Adding column rls_ignore_words to tvshows")
+        if not self.hasColumn("tv_shows", "rls_ignore_words"):
+            self.addColumn("tv_shows", "rls_ignore_words", "TEXT", "")
 
         self.incDBVersion()

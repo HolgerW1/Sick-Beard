@@ -148,7 +148,7 @@ class RSSSearchQueueItem(generic_queue.QueueItem):
         curDate = datetime.date.today().toordinal()
 
         myDB = db.DBConnection()
-        sqlResults = myDB.select("SELECT * FROM tv_episodes WHERE status = ? AND airdate < ?", [common.UNAIRED, curDate])
+        sqlResults = myDB.select("SELECT * FROM tv_episodes WHERE status = ? AND season > 0 AND airdate < ?", [common.UNAIRED, curDate])
 
         for sqlEp in sqlResults:
 
@@ -200,7 +200,7 @@ class BacklogQueueItem(generic_queue.QueueItem):
             statusResults = myDB.select("SELECT status FROM tv_episodes WHERE showid = ? AND airdate >= ? AND airdate <= ?",
                                         [self.show.tvdbid, min_date.toordinal(), max_date.toordinal()])
 
-        anyQualities, bestQualities = common.Quality.splitQuality(self.show.quality)  #@UnusedVariable
+        anyQualities, bestQualities = common.Quality.splitQuality(self.show.quality)  # @UnusedVariable
         self.wantSeason = self._need_any_episodes(statusResults, bestQualities)
 
     def execute(self):
@@ -211,8 +211,9 @@ class BacklogQueueItem(generic_queue.QueueItem):
 
         # download whatever we find
         for curResult in results:
-            search.snatchEpisode(curResult)
-            time.sleep(5)
+            if curResult:
+                search.snatchEpisode(curResult)
+                time.sleep(5)
 
         self.finish()
 

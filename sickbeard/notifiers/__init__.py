@@ -29,34 +29,38 @@ import growl
 import prowl
 from . import libnotify
 import pushover
-import boxcar
+import boxcar2
 import nma
+import pushalot
 
 import tweet
 import trakt
 
 from sickbeard.common import *
+from sickbeard import logger
+from sickbeard.exceptions import ex
 
-# home theater
+# home theater/nas
 xbmc_notifier = xbmc.XBMCNotifier()
 plex_notifier = plex.PLEXNotifier()
 nmj_notifier = nmj.NMJNotifier()
-synoindex_notifier = synoindex.synoIndexNotifier()
 nmjv2_notifier = nmjv2.NMJv2Notifier()
+synoindex_notifier = synoindex.synoIndexNotifier()
 pytivo_notifier = pytivo.pyTivoNotifier()
 # devices
 growl_notifier = growl.GrowlNotifier()
 prowl_notifier = prowl.ProwlNotifier()
 libnotify_notifier = libnotify.LibnotifyNotifier()
 pushover_notifier = pushover.PushoverNotifier()
-boxcar_notifier = boxcar.BoxcarNotifier()
+boxcar2_notifier = boxcar2.Boxcar2Notifier()
 nma_notifier = nma.NMA_Notifier()
-# online
+pushalot_notifier = pushalot.PushalotNotifier()
+# social
 twitter_notifier = tweet.TwitterNotifier()
 trakt_notifier = trakt.TraktNotifier()
 
 notifiers = [
-    libnotify_notifier, # Libnotify notifier goes first because it doesn't involve blocking on network activity.
+    libnotify_notifier,  # Libnotify notifier goes first because it doesn't involve blocking on network activity.
     xbmc_notifier,
     plex_notifier,
     nmj_notifier,
@@ -66,8 +70,9 @@ notifiers = [
     growl_notifier,
     prowl_notifier,
     pushover_notifier,
-    boxcar_notifier,
+    boxcar2_notifier,
     nma_notifier,
+    pushalot_notifier,
     twitter_notifier,
     trakt_notifier,
 ]
@@ -75,9 +80,23 @@ notifiers = [
 
 def notify_download(ep_name):
     for n in notifiers:
-        n.notify_download(ep_name)
+        try:
+            n.notify_download(ep_name)
+        except Exception, e:
+            logger.log(n.__class__.__name__ + ": " + ex(e), logger.ERROR)
 
 
 def notify_snatch(ep_name):
     for n in notifiers:
-        n.notify_snatch(ep_name)
+        try:
+            n.notify_snatch(ep_name)
+        except Exception, e:
+            logger.log(n.__class__.__name__ + ": " + ex(e), logger.ERROR)
+
+
+def update_library(ep_obj):
+    for n in notifiers:
+        try:
+            n.update_library(ep_obj=ep_obj)
+        except Exception, e:
+            logger.log(n.__class__.__name__ + ": " + ex(e), logger.ERROR)

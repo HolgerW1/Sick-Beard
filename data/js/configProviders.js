@@ -5,25 +5,29 @@ $(document).ready(function(){
             var providerName = $(this).attr('id');
             var selectedProvider = $('#editAProvider :selected').val();
 
-            if (selectedProvider+'Div' == providerName)
+            if (selectedProvider + 'Div' == providerName) {
                 $(this).show();
-            else
+            } else {
                 $(this).hide();
+            }
 
         });
-    }
+    };
 
     $.fn.addProvider = function (id, name, url, key, isDefault) {
 
         url = $.trim(url);
-        if (!url)
+        if (!url) {
             return;
+        }
 
-        if (!/^https?:\/\//i.test(url))
+        if (!/^https?:\/\//i.test(url)) {
             url = "http://" + url;
+        }
 
-        if (url.match('/$') == null)
+        if (url.match('/$') == null) {
             url = url + '/';
+        }
 
         var newData = [isDefault, [name, url, key]];
         newznabProviders[id] = newData;
@@ -33,8 +37,8 @@ $(document).ready(function(){
             $(this).populateNewznabSection();
         }
 
-        if ($('#providerOrderList > #'+id).length == 0) {
-            var toAdd = '<li class="ui-state-default" id="'+id+'"> <input type="checkbox" id="enable_'+id+'" class="provider_enabler" CHECKED> <a href="'+url+'" class="imgLink" target="_new"><img src="'+sbRoot+'/images/providers/newznab.png" alt="'+name+'" width="16" height="16"></a> '+name+'</li>';
+        if ($('#providerOrderList > #' + id).length == 0) {
+            var toAdd = '<li class="ui-state-default" id="' + id + '"> <input type="checkbox" id="enable_' + id + '" class="provider_enabler" CHECKED> <a href="' + url + '" class="imgLink" target="_new"><img src="' + sbRoot + '/images/providers/newznab.png" alt="' + name + '" width="16" height="16"></a> ' + name + '<span class="ui-icon ui-icon-arrowthick-2-n-s pull-right"></span></li>';
 
             $('#providerOrderList').append(toAdd);
             $('#providerOrderList').sortable("refresh");
@@ -42,7 +46,7 @@ $(document).ready(function(){
 
         $(this).makeNewznabProviderString();
 
-    }
+    };
 
     $.fn.updateProvider = function (id, url, key) {
 
@@ -53,7 +57,7 @@ $(document).ready(function(){
 
         $(this).makeNewznabProviderString();
 
-    }
+    };
 
     $.fn.deleteProvider = function (id) {
 
@@ -61,11 +65,11 @@ $(document).ready(function(){
         delete newznabProviders[id];
         $(this).populateNewznabSection();
 
-        $('#providerOrderList > #'+id).remove();
+        $('#providerOrderList > #' + id).remove();
 
         $(this).makeNewznabProviderString();
 
-    }
+    };
 
     $.fn.populateNewznabSection = function() {
 
@@ -88,22 +92,22 @@ $(document).ready(function(){
         $('#newznab_key').val(data[2]);
 
         if (selectedProvider == 'addNewznab') {
-            $('#newznab_name').removeAttr("disabled");
-            $('#newznab_url').removeAttr("disabled");
+            $('#newznab_name').prop("disabled", false);
+            $('#newznab_url').prop("disabled", false);
         } else {
 
-            $('#newznab_name').attr("disabled", "disabled");
+            $('#newznab_name').prop("disabled", true);
 
             if (isDefault) {
-                $('#newznab_url').attr("disabled", "disabled");
-                $('#newznab_delete').attr("disabled", "disabled");
+                $('#newznab_url').prop("disabled", true);
+                $('#newznab_delete').prop("disabled", true);
             } else {
-                $('#newznab_url').removeAttr("disabled");
-                $('#newznab_delete').removeAttr("disabled");
+                $('#newznab_url').prop("disabled", false);
+                $('#newznab_delete').prop("disabled", false);
             }
         }
 
-    }
+    };
 
     $.fn.makeNewznabProviderString = function() {
 
@@ -115,18 +119,18 @@ $(document).ready(function(){
 
         $('#newznab_string').val(provStrings.join('!!!'));
 
-    }
+    };
 
     $.fn.refreshProviderList = function() {
             var idArr = $("#providerOrderList").sortable('toArray');
             var finalArr = new Array();
             $.each(idArr, function(key, val) {
-                    var checked = + $('#enable_'+val).prop('checked') ? '1' : '0';
+                    var checked = + $('#enable_' + val).prop('checked') ? '1' : '0';
                     finalArr.push(val + ':' + checked);
             });
 
             $("#provider_order").val(finalArr.join(' '));
-    }
+    };
 
     var newznabProviders = new Array();
 
@@ -135,7 +139,7 @@ $(document).ready(function(){
         var provider_id = $(this).attr('id');
         provider_id = provider_id.substring(0, provider_id.length-'_hash'.length);
 
-        var url = $('#'+provider_id+'_url').val();
+        var url = $('#' + provider_id + '_url').val();
         var key = $(this).val();
 
         $(this).updateProvider(provider_id, url, key);
@@ -146,8 +150,9 @@ $(document).ready(function(){
 
         var selectedProvider = $('#editANewznabProvider :selected').val();
 
-        if (selectedProvider == "addNewznab")
+        if (selectedProvider == "addNewznab") {
             return;
+        }
 
         var url = $('#newznab_url').val();
         var key = $('#newznab_key').val();
@@ -156,15 +161,15 @@ $(document).ready(function(){
 
     });
 
-    $('#editAProvider').change(function(){
+    $('#editAProvider').change(function() {
         $(this).showHideProviders();
     });
 
-    $('#editANewznabProvider').change(function(){
+    $('#editANewznabProvider').change(function() {
         $(this).populateNewznabSection();
     });
 
-    $('.provider_enabler').live('click', function(){
+    $('#providerOrderList').on('click', '.provider_enabler', function() {
         $(this).refreshProviderList();
     });
 
@@ -173,11 +178,15 @@ $(document).ready(function(){
 
         var selectedProvider = $('#editANewznabProvider :selected').val();
 
-        var name = $('#newznab_name').val();
-        var url = $('#newznab_url').val();
-        var key = $('#newznab_key').val();
+        var name = $.trim($('#newznab_name').val());
+        var url = $.trim($('#newznab_url').val());
+        var key = $.trim($('#newznab_key').val());
 
-        var params = { name: name };
+        if (!name || !url || !key) {
+            return;
+        }
+
+        var params = {name: name};
 
         // send to the form with ajax, get a return value
         $.getJSON(sbRoot + '/config/providers/canAddNewznabProvider', params,

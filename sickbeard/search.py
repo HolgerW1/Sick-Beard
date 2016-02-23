@@ -317,7 +317,7 @@ def findEpisode(episode, manualSearch=False):
             logger.log(u"Authentication error: " + ex(e), logger.ERROR)
             continue
         except Exception, e:
-            logger.log(u"Error while searching episode with provider " + curProvider.name + ", skipping: " + ex(e), logger.ERROR)
+            logger.log(u"Error while searching episode " + episode.prettyName() + " with provider " + curProvider.name + ", skipping: " + ex(e), logger.ERROR)
             logger.log(traceback.format_exc(), logger.DEBUG)
             continue
 
@@ -379,7 +379,7 @@ def findSeason(show, season):
             logger.log(u"Authentication error: " + ex(e), logger.ERROR)
             continue
         except Exception, e:
-            logger.log(u"Error while searching season with provider " + curProvider.name + ", skipping: " + ex(e), logger.ERROR)
+            logger.log(u"Error while searching season for show " + show.name + " with provider " + curProvider.name + ", skipping: " + ex(e), logger.ERROR)
             logger.log(traceback.format_exc(), logger.DEBUG)
             continue
 
